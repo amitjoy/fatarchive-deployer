@@ -1,24 +1,6 @@
 ## Why?
 
-This maven plugin is responsible to create a Fat JAR bundle containing all the dependencies 
-	specified in a POM file. Sometimes users need to unpack specific dependency (eq. zip, tar etc) 
-	before packing the dependency as this dependency could contain other jar files. The primary 
-	motive is to collect all the dependencies including the plain jar dependencies and the other 
-	jar dependencies that reside in other dependency (eq. zip, tar etc). Apart from this, it could 
-	also update the versions of the specified dependencies before wrapping in a big fat JAR bundle. 
-	This internally uses bnd to wrap all the dependencies in a single fat JAR.
-	
-<i>The idea behind was to primarily update all the mentioned dependency versions in the POM and pack them (Plain JARs + JARs contained in non-JARs) in a big fat JAR.</i>
-
------------------------------------------------------------------
-
-## Primary Functions
-
-1. Update all POM dependencies automatically based on available updates from the POM specified repositories
-2. Unpack the dependencies containing JARs (e.g zip, tar, tar.gz, any other archive etc)
-3. Pack all POM specified JAR dependencies together with the JARs contained in other non-JAR archives (e.g zip, tar, tar.gz etc)
-4. Pack all these JARs to a Fat JAR OSGi Bundle by copying binaries and exporting them
-5. Copy the Fat JAR Bundle to user-specific location
+This maven plugin is responsible to deploy the JARs contained inside the specified composite maven dependencies.
 
 -----------------------------------------------------------------
 
@@ -51,23 +33,21 @@ This project is licensed under EPL-1.0 [![License](http://img.shields.io/badge/l
 ### Usage
 
 ```xml
-<plugin>
-  <groupId>com.amitinside</groupId>
-  <artifactId>fatjar-maven-plugin</artifactId>
-  <version>0.0.1</version>
-  <configuration>
-    <bundleSymbolicName>${bundle.symbolic.name}</bundleSymbolicName> <!-- mandatory -->
-    <bundleVersion>${bundle.version}</bundleVersion>                 <!-- mandatory -->
-    <extensionsToUnarchive>                                          <!-- mandatory -->
-        <param>zip</param>
-        <param>tar</param>
-    </extensionsToUnarchive>
-    <targetDirectory>${file.store.location}</targetDirectory>        <!-- mandatory -->
-    <targetFilename>com.mybundle.mybsn.fat.jar</targetFilename>      <!-- optional default - bsn-version.jar -->
-    <updateDependencyVersions>true</updateDependencyVersions>        <!-- optional default - true -->
-    <mavenLocation>/a/b/maven</mavenLocation>                        <!-- optional default environment variable -->
-  </configuration>
-</plugin>
+<build>
+		<plugins>
+			<plugin>
+				<groupId>com.amitinside</groupId>
+				<artifactId>fatarchive-deployer-maven-plugin</artifactId>
+				<version>0.0.1-SNAPSHOT</version>
+				<configuration>
+					<extensionsToUnarchive>
+						<param>par</param>
+						<param>zip</param>
+					</extensionsToUnarchive>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
 ```
 
 ```
@@ -108,24 +88,11 @@ mvn fatjar:makefat
 	</properties>
 
 	<dependencies>
-		<!-- Add Non-JAR Dependencies Here -->
 		<dependency>
 			<groupId>com.a</groupId>
 			<artifactId>b.c</artifactId>
 			<version>${my.non-jar.version}</version>
 			<type>zip</type>
-		</dependency>
-
-		<!-- Add JAR Dependencies Here -->
-		<dependency>
-			<groupId>com.x</groupId>
-			<artifactId>y.z</artifactId>
-			<version>${my.jar1.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>com.foo/groupId>
-			<artifactId>bar</artifactId>
-			<version>${my.jar2.version}</version>
 		</dependency>
 	</dependencies>
 
@@ -133,17 +100,13 @@ mvn fatjar:makefat
 		<plugins>
 			<plugin>
 				<groupId>com.amitinside</groupId>
-				<artifactId>fatjar-maven-plugin</artifactId>
-				<version>0.0.1</version>
+				<artifactId>fatarchive-deployer-maven-plugin</artifactId>
+				<version>0.0.1-SNAPSHOT</version>
 				<configuration>
-					<bundleSymbolicName>${bundle.symbolic.name}</bundleSymbolicName>
-					<bundleVersion>${bundle.version}</bundleVersion>
 					<extensionsToUnarchive>
+						<param>par</param>
 						<param>zip</param>
-	                                        <param>tar</param>
 					</extensionsToUnarchive>
-					<targetDirectory>${file.store.location}</targetDirectory>
-					<updateDependencyVersions>true</updateDependencyVersions>
 				</configuration>
 			</plugin>
 		</plugins>
