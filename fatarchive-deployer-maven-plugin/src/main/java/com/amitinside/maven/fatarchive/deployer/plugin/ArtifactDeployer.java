@@ -24,10 +24,12 @@ import static org.twdata.maven.mojoexecutor.MojoExecutor.version;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.jar.Attributes;
 import java.util.jar.JarFile;
@@ -47,7 +49,7 @@ import com.google.common.collect.Maps;
 import net.lingala.zip4j.core.ZipFile;
 import net.lingala.zip4j.exception.ZipException;
 
-public final class NexusDeployer {
+public final class ArtifactDeployer {
 
     private final File sourceLocation;
     private final String[] extensionsToUnarchive;
@@ -58,7 +60,7 @@ public final class NexusDeployer {
 
     private final Map<File, GAV> artifacts = Maps.newHashMap();
 
-    private NexusDeployer(final MavenProject mavenProject, final MavenSession mavenSession,
+    private ArtifactDeployer(final MavenProject mavenProject, final MavenSession mavenSession,
             final BuildPluginManager pluginManager, final Log log) {
         sourceLocation = (File) Configurer.INSTANCE.get(SOURCE_DIRECTORY);
         extensionsToUnarchive = (String[]) Configurer.INSTANCE.get(EXTENSION_TO_UNARCHIVE);
@@ -68,16 +70,16 @@ public final class NexusDeployer {
         this.log = log;
     }
 
-    public static NexusDeployer newInstance(final MavenProject mavenProject, final MavenSession mavenSession,
+    public static ArtifactDeployer newInstance(final MavenProject mavenProject, final MavenSession mavenSession,
             final BuildPluginManager pluginManager, final Log log) {
-        return new NexusDeployer(mavenProject, mavenSession, pluginManager, log);
+        return new ArtifactDeployer(mavenProject, mavenSession, pluginManager, log);
     }
 
     public void build() throws Exception {
         extractFatArchives();
         prepareGAV();
         deployContainedArchives();
-        outputGAVs();
+        saveGAVs();
         FileUtils.deleteDirectory(sourceLocation);
     }
 
@@ -137,15 +139,30 @@ public final class NexusDeployer {
         }
     }
 
-    private void outputGAVs() throws IOException {
-        final StringBuilder builder = new StringBuilder();
-        artifacts.forEach((k, v) -> {
-            builder.append(System.lineSeparator());
-            builder.append(v.groupID + ":" + v.artifactID + ":" + v.version);
-        });
-        final File file = new File(sourceLocation + "composites.txt");
-        file.createNewFile();
-        FileUtils.writeStringToFile(file, builder.toString(), StandardCharsets.UTF_8);
+    private void saveGAVs() throws IOException {
+        final File file = new File("config/runtime.maven");
+        final List<String> lines = removeAllInternalArtifacts(file);
+        artifacts.forEach((k, v) -> lines.add(v.groupID + ":" + v.artifactID + ":" + v.version));
+        FileUtils.writeLines(file, lines);
+    }
+
+    private List<String> removeAllInternalArtifacts(final File file) {
+        try {
+            final List<String> lines = Files.readAllLines(file.toPath());
+            final List<String> copyLines = new ArrayList<>();
+            for (final String line : lines) {
+                if (line.startsWith("# Internal")) {
+                    break;
+                }
+                copyLines.add(line);
+            }
+            copyLines.add("# Internal Artifacts");
+            copyLines.add("");
+            return copyLines;
+        } catch (final IOException e) {
+            e.printStackTrace();
+        }
+        return Collections.emptyList();
     }
 
     private static class GAV {

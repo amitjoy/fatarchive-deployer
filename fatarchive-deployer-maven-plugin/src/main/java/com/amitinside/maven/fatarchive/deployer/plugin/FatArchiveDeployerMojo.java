@@ -31,7 +31,7 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
 
-@Mojo(name = "deployToNexus")
+@Mojo(name = "deploy")
 public class FatArchiveDeployerMojo extends AbstractMojo {
 
     @Component
@@ -76,7 +76,7 @@ public class FatArchiveDeployerMojo extends AbstractMojo {
             createSourceDirectory();
             storeConfugurationParameters();
             LocalMavenRepositoryBrowser.newInstance().copyArtefact();
-            NexusDeployer.newInstance(mavenProject, mavenSession, pluginManager, getLog()).build();
+            ArtifactDeployer.newInstance(mavenProject, mavenSession, pluginManager, getLog()).build();
         } catch (final Exception e) {
             throw new MojoFailureException(e.getMessage());
         }
