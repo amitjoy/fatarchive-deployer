@@ -1,2 +1,2 @@
 # fatarchive-deployer
-This Maven Plugin deploys the fat archive contained artifacts to Nexus
+This Maven Plugin does deploy the fat archive contained artifacts to Nexus
