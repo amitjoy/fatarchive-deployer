@@ -73,7 +73,7 @@
 		<maven-javadoc-plugin.version>3.0.0-M1</maven-javadoc-plugin.version>
 		<guava.version>23.0</guava.version>
 		<invoker.version>3.0.0</invoker.version>
-		<zip4j.version>1.3.2</zip4j.version>
+		<zip4j.version>2.10.0</zip4j.version>
 		<slf4j.log4j.version>1.7.25</slf4j.log4j.version>
 		<bndlib.version>3.5.0</bndlib.version>
 		<commons.io.version>2.6</commons.io.version>
